@@ -48,7 +48,7 @@ namespace HW_29092023_ServerApp
                                 message = $"Invalid request!";
                                 break;
                         }
-                        Console.WriteLine($"At {DateTime.Now.ToShortTimeString()} was received from {clientEndPoint.Address}: {message}");
+                        Console.WriteLine($"At {DateTime.Now.ToShortTimeString()} was received from {clientEndPoint.Address}: {builder.ToString()}");
                         byte[] messagedata = Encoding.UTF8.GetBytes(message);
                         await client.SendAsync(messagedata, SocketFlags.None);
 
