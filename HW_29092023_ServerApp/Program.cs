@@ -22,11 +22,11 @@ namespace HW_29092023_ServerApp
                 socket.Bind(ipPoint);
                 socket.Listen();
                 Console.WriteLine("Server started. Waiting for connections...");
-                Socket client = await socket.AcceptAsync();
-                IPEndPoint clientEndPoint = (IPEndPoint)client.RemoteEndPoint;
-                Console.WriteLine("Client connected. Waiting for data...");
-                do
-                {
+              
+                    Socket client = await socket.AcceptAsync();
+                    IPEndPoint clientEndPoint = (IPEndPoint)client.RemoteEndPoint;
+                    Console.WriteLine("Client connected. Waiting for data...");
+                
                     byte[] data = new byte[256];
                     StringBuilder builder = new StringBuilder();
                     int bytes = 0;
@@ -53,7 +53,7 @@ namespace HW_29092023_ServerApp
                         await client.SendAsync(messagedata, SocketFlags.None);
 
                     } while (client.Available > 0);
-                }while (true);
+               
             }
             catch (Exception e)
             {
