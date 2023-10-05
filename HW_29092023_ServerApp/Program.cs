@@ -15,53 +15,54 @@ namespace HW_29092023_ServerApp
         {
             int port = 8080;
             string ip = "127.0.0.1";
-            IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(ip), port);
+            IPEndPoint ipPoint = new IPEndPoint(IPAddress.Parse(ip), port);
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try
             {
-                socket.ConnectAsync(endPoint);
-                Console.WriteLine("Connected to the server");
-                Console.WriteLine("Enter your choice: \n1.Date\n2.Time");
-                int choice;
-                bool ok = int.TryParse(Console.ReadLine(), out choice);
-
-                string message = "";
-
-                if (ok)
-                {
-                    switch (choice)
-                    {
-                        case 1:
-                            message = "date";
-                            break;
-                        case 2:
-                            message = "time";
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                byte[] data = Encoding.UTF8.GetBytes(message);
-                await socket.SendAsync(data, SocketFlags.None);
-
-
-                data = new byte[256];
-                StringBuilder builder = new StringBuilder();
-                int bytes = 0;
+                socket.Bind(ipPoint);
+                socket.Listen();
+                Console.WriteLine("Server started. Waiting for connections...");
                 do
                 {
-                    bytes = await socket.ReceiveAsync(data, SocketFlags.None);
-                    builder.Append(Encoding.UTF8.GetString(data, 0, bytes));
-                    Console.WriteLine($"At {message} was received from {endPoint.Address}: {builder.ToString()}");
+                    Socket client = await socket.AcceptAsync();
+                    IPEndPoint clientEndPoint = (IPEndPoint)client.RemoteEndPoint;
+                    Console.WriteLine("Client connected. Waiting for data...");
 
-                } while (socket.Available > 0);
+                    byte[] data = new byte[256];
+                    StringBuilder builder = new StringBuilder();
+                    int bytes = 0;
+                    do
+                    {
+                        bytes = await client.ReceiveAsync(data, SocketFlags.None);
+                        builder.Append(Encoding.UTF8.GetString(data, 0, bytes));
+
+                        string message = "";
+                        switch (builder.ToString())
+                        {
+                            case "date":
+                                message = $"{DateTime.Now.ToShortDateString()}";
+                                break;
+                            case "time":
+                                message = $"{DateTime.Now.ToShortTimeString()}";
+                                break;
+                            default:
+                                message = $"Invalid request!";
+                                break;
+                        }
+                        Console.WriteLine($"At {DateTime.Now.ToShortTimeString()} was received from {clientEndPoint.Address}: {message}");
+                        byte[] messagedata = Encoding.UTF8.GetBytes(message);
+                        await client.SendAsync(messagedata, SocketFlags.None);
+
+                    } while (client.Available > 0);
+
+                }while (true);
+               
 
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                Console.WriteLine(e.Message);
+                return;
             }
         }
     }
